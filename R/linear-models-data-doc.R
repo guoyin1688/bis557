@@ -1,4 +1,3 @@
-
 #' A data set for the first homework
 #'
 #' @name lm_patho
