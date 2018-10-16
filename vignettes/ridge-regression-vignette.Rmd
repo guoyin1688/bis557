@@ -20,12 +20,13 @@ data(ridge_train)
 data(ridge_test)
 ridge_train_scale <- as.data.frame(scale(ridge_train))
 ridge_test_scale <- as.data.frame((scale(ridge_test)))
+formula <- y ~. -1
 ```
 
 The function is to calculate mse of the ridge regression model for different lambda values.
 
 ```{r}
-mse_ridge_reg <- function(formula, lambda){ 
+mse_ridge_reg <- function(lambda){ 
   X_test <- model.matrix(formula, ridge_test_scale)
   y_test <- ridge_test_scale[, all.vars(formula)[1]]
   k <- length(lambda)
@@ -43,7 +44,7 @@ We are able to find the optimal value of lambda and plot lambdas on a log scale 
 
 ```{r}
 lambda_vals <- 10 ^ (seq(-1, 5, 0.1))
-mse <- mse_ridge_reg(y ~. -1, lambda_vals)
+mse <- mse_ridge_reg(lambda_vals)
 lambda_optimal <- lambda_vals[which.min(mse)]
 cat("The optimal value of lambda is", lambda_optimal, "\n")
 plot(mse ~ lambda_vals, log = "x", pch = 16)
