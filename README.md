@@ -5,10 +5,18 @@ BIS557
 
 This is a repository for storing all code, documentation, and digital artifacts for BIS557.
 
-I've implemented and documented a function that realizes linear_model. You can use it like this:
+In the first homework, I've implemented and documented a function ‘linear_model’. You can use it like this:
 
 ```{R}
 library(bis557)
 fit <- linear_model(Sepal.Length ~., iris)
+summary(fit)
+```
+
+In the second homework, I've implemented and documented a function ‘ridge_reg’. You can use it like this:
+
+```{R}
+library(bis557)
+fit <- linear_model(Sepal.Length ~., lambda = 1, iris)
 summary(fit)
 ```
