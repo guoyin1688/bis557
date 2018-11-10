@@ -1,0 +1,135 @@
+---
+title: "Homework 3"
+author: "Clint Guo"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    self_contained: yes
+    toc: yes
+---
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Homework 3 vignette}
+-->
+
+**2.** CASL page 200, question 3
+
+$f$, $g$ are both convex functions. 
+
+For any values $b_1$, $b_2$ and t $\in [0,1]$, 
+$$f(tb_1 + (1-t)b_2) \leq tf(b_1) + (1-t)f(b_2)$$
+$$g(tb_1 + (1-t)b_2) \leq gf(b_1) + (1-t)g(b_2)$$
+Denote $h=f+g$, we have
+$$
+\begin{aligned}
+h(tb_1 + (1-t)b_2) &= f(tb_1 + (1-t)b_2) + g(tb_1 + (1-t)b_2)\\
+&\leq  tf(b_1) + (1-t)f(b_2) + tg(b_1) + (1-t)g(b_2)\\
+&= t(f(b_1) + g(b_1)) + (1-t)(f(b_2) + g(b_2))\\
+&= th(b_1) + (1-t)h(b_2)
+\end{aligned}
+$$
+Thus, $h$ is also convex. 
+
+**3.** CASL page 200, question 4
+
+$f(x) = |x|$
+
+For any values $b_1$, $b_2$ and t $\in [0,1]$,
+$$
+\begin{aligned}
+f(tb_1 + (1-t)b_2) &= |tb_1 + (1-t)b_2|\\ 
+&\leq |tb_1| + |(1-t)b_2|\\ 
+&= t|b_1| + (1-t)|b_2|\\
+&= tf(b_1) + (1-t)f(b_2)
+\end{aligned}
+$$
+
+Thus, the absolute value function is convex, and according to the result from above, the sum of absolute value functions is convex. 
+
+The l1-norm of a vector is given by adding together the absolute values of each of its components 
+$$||v||_1 = \sum_j |v_j|$$
+Therefore, it's also convex. 
+
+**4.** CASL page 200, question 5
+
+The elastics net objective function is defined, for some $\lambda>0$ and $\alpha\in [0,1]$, as
+$$f(b;\lambda,\alpha) = \frac{1}{2n}||y-Xb||^2_2 + \lambda\left((1-\alpha)\frac{1}{2} ||b||_2^2 + \alpha||b||_1\right)$$
+Firstly, we'll prove that the square of l2-norm of a vector is convex. We get started with the second derivative test of $f(x) = x^2$. For any value of $x$, $\frac{d^2g}{dg^2} = 2 > 0$. Thus, $f(x)$ is convex everywhere. The the square of l2-norm is given by adding together the squares of each of its components, 
+$$||v||^2_2 = \sum_j |v_j|^2$$
+Therefore, it's also convex. 
+
+Secondly, we'll prove that a constant multiple of a convex function is also convex. If $f$ is convex, $g = af$ ($a$ is a constant), for any values $b_1$, $b_2$ and t $\in [0,1]$, 
+$$
+\begin{aligned}
+g(tb_1 + (1-t)b_2) &= af(tb_1 + (1-t)b_2)\\
+&\leq  a(tf(b_1) + (1-t)f(b_2))\\
+&= taf(b_1) + (1-t)af(b_2)\\
+&= tg(b_1) + (1-t)g(b_2) \\
+\end{aligned}
+$$
+Thus, $g$ is also convex. 
+
+Considering the elastics net objective function again, we can see that it's the linear combination (sums and constant multiples) of a l-1 norm and two square of l-2 norms, leading it to be convex. 
+
+**5.** CASL page 200, question 6
+
+The `check_KKT` function is coded according to (7.37), as we set $alpha=1$ for the elastic net objective function. 
+
+```{r}
+check_KKT <- function(X, y, b, lambda) {
+  resids <- y - X %*% b
+  s <- apply(X, 2, function(xj) crossprod(xj, resids)) / lambda / nrow(X)
+  (b == 0) & (abs(s) >= 1)
+}
+```
+
+We generate some random data for testing. As one powerful feature of the elastic net is the ability to use a high-dimensional data matrix X (a data matrix containing more columns than rows), we generate a data matrix with 1000 rows and 5000 columns. Also, the generation process puts non-zero weights on only the first 10 components of the regression vector, with the size of the components decreasing from 1 to 0.1. 
+
+```{r}
+set.seed(230)
+n <- 1000L
+p <- 5000L
+X <- matrix(rnorm(n * p), ncol = p)
+beta <- c(seq(1, 0.1, length.out=(10L)), rep(0, p - 10L))
+y <- X %*% beta + rnorm(n = n, sd = 0.15)
+```
+
+If we compute the lasso regression vector at $\lambda=0.5$ with `glmnet`, only the first five coefficents are selected by the model. Since `glmnet` calculates `beta_hat` using coordinate descent, KKT conditions are expected to be fulfilled for any slope coefficient. and it's the case!
+
+```{r}
+library(glmnet)
+gfit <- glmnet(X, y, lambda = 0.5)
+beta_hat <- as.vector(gfit$beta)
+which(beta_hat != 0)
+
+which(check_KKT(X, y, beta_hat, lambda = 0.5))
+```
+
+If we manually set some of the non-zero slope coefficients equal to 0, KKT conditions are expected to be violated. The `check_KKT` function also manages to find out which coefficients are not optimal. 
+
+```{r}
+beta_new <- beta_hat
+beta_new[c(2, 4)] <- 0
+which(check_KKT(X, y, beta_new, lambda = 0.5))
+```
+
+Suppose we now want to compute the solution to the lasso regression at some smaller value of $\lambda$, such as 0.3. We can use our function `check_KKT` to determine what new variables may need to be included in the model.
+
+```{r}
+which(check_KKT(X, y, beta_hat, lambda = 0.3))
+```
+
+Besides `glmnet`, cross-validation (`cv.glmnet`) are used to find the best tuning parameter $lambda$ for prediction. We select the value of $\lambda$ that gives minimum cross-validation error, and then check the KKT conditions. 
+
+```{r}
+gfit <- cv.glmnet(X, y)
+lambda_min <- gfit$lambda.min
+lambda_min
+beta_hat <- gfit$glmnet.fit$beta[, which(gfit$lambda == lambda_min)]
+which(beta_hat != 0)
+
+KKT_via <- check_KKT(X, y, beta_hat, lambda = lambda_min)
+sum(KKT_via) / length(KKT_via)
+```
+
+The small $\lambda=0.012$ here gives a model selection of poor performance (introducing so many non-signicant variables), and there's only 0.1% variables returned that vialote KKT conditions due to the numerical issue of `cv.glmnet`. 
