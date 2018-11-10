@@ -9,6 +9,8 @@ License: Apache License 2.0
 RoxygenNote: 6.1.0
 Suggests: testthat, knitr,
     rmarkdown
-Imports: stats
+Imports: stats,
+    ggplot2,
+    glmnet
 VignetteBuilder: knitr
 Encoding: UTF-8
