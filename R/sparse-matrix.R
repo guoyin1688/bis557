@@ -30,9 +30,9 @@ sparse.matrix <- function(i, j, x, dims = c(max(i), max(j))) {
 #' @examples
 #' a <- sparse.matrix(i = c(1, 2), j = c(1, 3), x = c(3, 1))
 #' b <- sparse.matrix(i = c(1, 2), j = c(3, 1), x = c(4.4, 1.2))
-#' a + b
+#' sparse_add(a, b)
 #' @export 
-`+.sparse.matrix` <- function(a, b) {
+sparse_add <- function(a, b) {
   if (!inherits(b, "sparse.matrix"))
     stop ("b is not a sparse.matrix type.")
   
@@ -53,19 +53,18 @@ sparse.matrix <- function(i, j, x, dims = c(max(i), max(j))) {
   sm
 }
 
-`%*%` <- function(a, b) {
-  UseMethod("%*%", a)
-}
-`%*%.default` = .Primitive("%*%")
-
 #' Multiply sparse matrices
 #' 
 #' @description This function multiplies two sparse matrices.  
 #' @param a a sparse.matrix object
 #' @param b a sparse.matrix object
 #' @return a sparse.matrix object
+#' @examples
+#' a <- sparse.matrix(i = c(1, 2), j = c(1, 3), x = c(3, 1))
+#' b <- sparse.matrix(i = c(1, 3), j = c(2, 1), x = c(4.4, 1.2))
+#' sparse_multiply(a, b)
 #' @export
-`%*%.sparse.matrix` <- function(a, b) {
+sparse_multiply <- function(a, b) {
   if (!inherits(b, "sparse.matrix"))
     stop ("b is not a sparse.matrix type.")
   
@@ -98,8 +97,11 @@ sparse.matrix <- function(i, j, x, dims = c(max(i), max(j))) {
 #' @description This function transposes a sparse matrix.  
 #' @param a a sparse.matrix object
 #' @return a sparse.matrix object
+#' @examples
+#' a <- sparse.matrix(i = c(1, 2), j = c(1, 3), x = c(3, 1))
+#' sparse_transpose(a)
 #' @export 
-`t.sparse.matrix` <- function(a) {
+sparse_transpose <- function(a) {
   mat <- a$mat
   
   tmp <- mat$i
@@ -109,4 +111,20 @@ sparse.matrix <- function(i, j, x, dims = c(max(i), max(j))) {
   sm <- list(mat = mat, dims = c(a$dims[2], a$dims[1])) 
   class(sm) <- "sparse.matrix" 
   sm
+}
+
+`+.sparse.matrix` <- function(x, y) {
+  sparse_add(x, y)
+}
+
+`%*%.default` <- .Primitive("%*%")
+`%*%` <- function(x, y) {
+  UseMethod("%*%", x)
+}
+`%*%.sparse.matrix` <- function(x, y) {
+  sparse_multiply(x, y)
+}
+
+`t.sparse.matrix` <- function(x) {
+  sparse_transpose(x)
 }
