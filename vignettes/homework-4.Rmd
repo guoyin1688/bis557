@@ -11,7 +11,7 @@ output:
 ---
 <!--
 %\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{Homework 3 vignette}
+%\VignetteIndexEntry{Homework 4 vignette}
 -->
 
 **1.** CASL page 143, question 2
@@ -80,3 +80,101 @@ $$cond(H_2)=\frac{\sqrt{1}}{\sqrt{3.7*10^{-44}}}=5.2*10^{21}$$
 
 The logistic Hessian is then ill-conditioned. 
 
+**2.** CASL page 144, question 8
+
+Iteratively Re-Weighted Least Squares (IRWLS) and reletaed notations are defined in CASL page 128. 
+
+If we incorporate a ridge penalty into the maximum likelihood estimator, 
+
+$$H^{-1}_l(\beta^{(k)})=-(X^TWX-2\lambda I)$$
+
+$$\triangledown_l(\beta^{(k)})=X^T(Y-g^{-1}(X\beta^{(k)})-2\lambda\beta^{(k)}$$
+
+Therefore, 
+
+$$
+\begin{aligned}
+\beta^{(k+1)}&=\beta^{(k)}-H^{-1}_l(\beta^{(k)})\triangledown_l(\beta^{(k)})\\
+&=\beta^{(k)}+V^{-1}\{[X^T Y-g^{-1}(X\beta^{(k)})]-2\lambda\beta^{(k)}\})\\
+&=V^{-1}V\beta^{(k)}-2\lambda V^{-1}\beta^{(k)}+V^{-1}[X^T Y-g^{-1}(X\beta^{(k)})] \\
+&=V^{-1}X^TWX\beta^{(k)}+V^{-1}[X^T Y-g^{-1}(X\beta^{(k)})]\\
+&=V^{-1}X^TWX\beta^{(k)}+V^{-1}[X^T W W^{-1}Y-g^{-1}(X\beta^{(k)})]\\
+&=V^{-1}X^TW\{X \beta^{(k)}+W^{-1}Y-g^{-1}(X\beta^{(k)})\}\\
+&=(X^TWX+2\lambda I)^{-1}X^TW z
+\end{aligned}
+$$
+
+where $$V=X^TWX+2\lambda I$$
+
+$$W=diag(g^{-1})'(X\beta^{(k)})$$
+
+$$z = X \beta^{(k)}+W^{-1}(Y-g^{-1}(X\beta^{(k)}))$$
+
+```{r}
+glm_irwls_ridge <- function(X, y, family, maxit = 25, tol = 1e-10, lambda = 0){
+  beta <- rep(0, ncol(X))
+  for(j in seq_len(maxit))
+  {
+    b_old <- beta
+    eta <- X %*% b_old
+    mu <- family$linkinv(eta)
+    mu_p <- family$mu.eta(eta)
+    z <- eta + (y - mu) / mu_p
+    W <- as.numeric(mu_p^2 / family$variance(mu))
+    XtX <- crossprod(X, diag(W) %*% X) + 2* lambda*diag(1, ncol(X))
+    Xtz <- crossprod(X, W * z)
+    beta <- solve(XtX, Xtz)
+    if(sqrt(crossprod(beta - b_old)) < tol) break
+  }
+  beta 
+}
+```
+
+We will generate some data from Poisson regression so that the learned regression vector should be close to the vector used to simulate the data. 
+
+```{r}
+n <- 5000
+p <- 3
+beta <- c(-1, 0.2, 0.1)
+X <- cbind(1, matrix(rnorm(n * (p - 1)), ncol = p - 1))
+eta <- X %*% beta
+lambda <- exp(eta)
+y <- rpois(n, lambda = lambda)
+beta_glm <- coef(glm(y ~ X[, -1], family = "poisson"))
+beta_irwls_ridge <- glm_irwls_ridge(X, y, family = poisson(link = "log"), 
+                                    lambda = 0)
+cbind(beta_glm, beta_irwls_ridge)
+```
+
+We see that our solution matches the `glm` model. 
+
+3. Sparse matrix
+
+We create a new class `sparse.matrix` that has add `+`, multiply `%*%`, and transpose `t()` methods. 
+
+```{r}
+library(bis557)
+
+`+.sparse.matrix` <- function(x, y) {
+  sparse_add(x, y)
+}
+
+`%*%.default` <- .Primitive("%*%")
+`%*%` <- function(x, y) {
+  UseMethod("%*%", x)
+}
+`%*%.sparse.matrix` <- function(x, y) {
+  sparse_multiply(x, y)
+}
+
+`t.sparse.matrix` <- function(x) {
+  sparse_transpose(x)
+}
+
+a <- sparse.matrix(i = c(1, 2), j = c(1, 3), x = c(3, 1), dims = c(3, 3))
+b <- sparse.matrix(i = c(1, 2), j = c(3, 1), x = c(4.4, 1.2), dims = c(3, 3))
+
+a + b
+a %*% b
+t(a)
+```
