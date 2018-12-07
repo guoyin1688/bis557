@@ -20,3 +20,5 @@ library(bis557)
 fit <- linear_model(Sepal.Length ~., lambda = 1, iris)
 summary(fit)
 ```
+
+In the fourth homework, I've created a new class `sparse.matrix` that has add `+`, multiply `%*%`, and transpose `t()` methods.
