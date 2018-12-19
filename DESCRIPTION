@@ -2,15 +2,20 @@ Package: bis557
 Type: Package
 Title: What the package does (short line)
 Version: 0.1.0
-Author: Michael Kane
-Maintainer: Michael Kane <michael.kane@yale.edu>
+Author: Yin Guo
+Maintainer: Yin Guo <yin.guo@yale.edu>
 Description: Assignments, code, and digital artifacts for BIS 557.
 License: Apache License 2.0
 RoxygenNote: 6.1.1
-Suggests: testthat, knitr,
+Suggests: testthat, 
+    knitr,
     rmarkdown
 Imports: stats,
     ggplot2,
-    glmnet
+    glmnet, 
+    dplyr,
+    keras, 
+    moments, 
+    tibble
 VignetteBuilder: knitr
 Encoding: UTF-8
