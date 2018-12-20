@@ -1,6 +1,6 @@
 Package: bis557
 Type: Package
-Title: What the package does (short line)
+Title: Computational Statistics
 Version: 0.1.0
 Author: Yin Guo
 Maintainer: Yin Guo <yin.guo@yale.edu>
@@ -19,3 +19,4 @@ Imports: stats,
     tibble
 VignetteBuilder: knitr
 Encoding: UTF-8
+Depends: R (>= 2.10)
