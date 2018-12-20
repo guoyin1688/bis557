@@ -14,7 +14,9 @@ output:
 %\VignetteIndexEntry{Homework 5 vignette}
 -->
 
-```{r, echo = TRUE, message = FALSE, warning = FALSE}
+```{r}
+library(keras)
+install_keras()
 library(keras)
 library(glmnet)
 library(moments)
