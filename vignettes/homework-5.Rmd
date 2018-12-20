@@ -115,7 +115,7 @@ A 1% improvement!
 
 **2.** CASL page 253, question 4
 
-```{r}
+```{r, eval=FALSE}
 data(emnist_train)
 data(emnist_test)
 
@@ -137,7 +137,7 @@ y_train <- to_categorical(y_train, 26L)
 y_test <- to_categorical(y_test, 26L)
 ```
 
-```{r}
+```{r, eval=FALSE}
 model_emnist <- keras_model_sequential()
 model_emnist %>% 
   layer_conv_2d(filters = 32, kernel_size = c(2, 2),padding = "same", 
@@ -176,7 +176,7 @@ Accuracy = 0.829, validation accuracy = 0.8739. We then carry out the following 
 2. Reduce drop out rate to 0.4.
 3. Add a Batch Normalization layer between each convolution layer. 
 
-```{r}
+```{r, eval=FALSE}
 model_emnist2 <- keras_model_sequential()
 model_emnist2 %>% 
   layer_conv_2d(filters = 32, kernel_size = c(3, 3), padding = "same", 
